@@ -178,10 +178,10 @@ security:
 
 | | |
 |---|---|
-| **Plugin** | Ai For Minecraft |
+| **Plugin** | Login And Register Minecraft |
 | **Author** | Benyamin Gharri |
 | **YouTube** | [BenyVKx](https://www.youtube.com/@BenyVKx) |
 | **Tutorial Video** | Coming soon |
-| **Persian README.md** | [README.FA.md](https://github.com/BenyVK/minecraft-vkauth/blob/main/README.FA.md) |
+| **English README.md** | [README.md](https://github.com/BenyVK/minecraft-vkauth/blob/main/README.md) |
 
 </div>
