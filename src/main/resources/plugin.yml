@@ -1,0 +1,17 @@
+name: vkauth
+version: '${version}'
+main: ir.gharri.vkauth.Vkauth
+api-version: '1.21'
+description: Register and login system
+commands:
+  register:
+    description: Create your account
+    usage: /register <password> <confirm>
+    aliases: [reg]
+  login:
+    description: Log in to your account
+    usage: /login <password>
+    aliases: [log]
+  logout:
+    description: Leave the server
+    usage: /logout

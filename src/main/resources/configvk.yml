@@ -1,0 +1,112 @@
+# Create by BenyVK
+# Telegram https://t.me/i36VK
+# Github : https://Github.com/BenyVK
+
+# ======================================================================
+#  vkauth - configvk.yml
+#  Colors: use & codes (&a, &c, &e ...). Placeholders use {braces}.
+#  Restart the server after editing this file.
+# ======================================================================
+
+storage:
+  # yaml        -> accounts.yml in the plugin folder
+  # mysql       -> MySQL database
+  # mysql,yaml  -> save in BOTH (read from the first one, fallback to the second)
+  # (the MySQL table gets the new last_login column automatically)
+  type: "yaml"
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    database: "vkauth"
+    username: "root"
+    password: ""
+    table: "vkauth_accounts"
+
+# ----------------------------------------------------------------------
+# auth-map: true  -> unauthenticated players are teleported to pos-auth-start,
+#                    and after login they go back to where they were.
+# Format: "X,Y,Z,A"  (A = yaw / facing angle)
+# ----------------------------------------------------------------------
+auth-map: false
+pos-auth-world: "world"
+pos-auth-start: "0.5,100,0.5,0"
+
+# true -> a player who is not logged in yet cannot see any other player
+#         (works together with auth-map, or on its own)
+auth_hide_players: false
+
+# ----------------------------------------------------------------------
+# start_auth_all: true -> after login/register the player ALWAYS spawns at
+#                         start_auth_pos (last location is ignored).
+# ----------------------------------------------------------------------
+start_auth_all: false
+start_auth_world: "world"
+start_auth_pos: "0.5,100,0.5,0"
+
+# ----------------------------------------------------------------------
+# 3D text: a floating text in front of the player while he is logging in /
+# registering. Only that player can see it; it disappears after login.
+# ----------------------------------------------------------------------
+text3d: true
+# \n = new line. Placeholder: {player}
+text3d_note: "&b&lWelcome &f{player}\n&7Please log in or register"
+# size of the text (1.0 = normal, 3.0 = big, 0.5 = small)
+text3d_scale: 1.5
+# how far in front of the player (blocks)
+text3d_distance: 2.5
+# height offset from the player's eyes (blocks, can be negative)
+text3d_height: 0.3
+
+# ----------------------------------------------------------------------
+# TAB list name while logging in / registering.
+# {number} = how many logins / registrations started today (resets every day)
+# ----------------------------------------------------------------------
+tab_names: true
+tab_login_format: "LOGIN_USER_{number}"
+tab_register_format: "REGISTER_USER_{number}"
+
+# ----------------------------------------------------------------------
+# Last login date (shown after /login)
+# Pattern: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html
+# time-zone: e.g. "Europe/Berlin", "Asia/Tehran" (empty = server time zone)
+# ----------------------------------------------------------------------
+last-login-format: "yyyy-MM-dd HH:mm:ss"
+time-zone: ""
+
+security:
+  min-password-length: 6
+  max-password-length: 32
+  # wrong passwords before kick (0 = unlimited)
+  max-login-attempts: 5
+  # seconds to log in before being kicked (0 = no limit)
+  login-timeout-seconds: 60
+  # how often the "please login/register" reminder is sent (0 = off)
+  reminder-interval-seconds: 10
+
+messages:
+  prefix: "&8[&bvkauth&8]&r "
+  must-register: "{prefix}&eWelcome &f{player}&e! Register with &f/reg <password> <confirm>"
+  must-login: "{prefix}&eWelcome back &f{player}&e! Log in with &f/login <password>"
+  wait-loading: "{prefix}&7Loading your account, please wait..."
+  register-usage: "{prefix}&cUsage: /register <password> <confirm>"
+  login-usage: "{prefix}&cUsage: /login <password>"
+  already-registered: "{prefix}&cYou are already registered. Use /login <password>"
+  not-registered: "{prefix}&cYou are not registered. Use /register <password> <confirm>"
+  already-logged-in: "{prefix}&cYou are already logged in."
+  password-mismatch: "{prefix}&cThe two passwords do not match."
+  password-too-short: "{prefix}&cPassword must be at least {min} characters."
+  password-too-long: "{prefix}&cPassword must be at most {max} characters."
+  register-success: "{prefix}&aRegistration successful. You are now logged in!"
+  login-success: "{prefix}&aLogin successful. Welcome!"
+  # {date} = previous login time
+  last-login: "{prefix}&7Last login: &f{date}"
+  # shown instead of {date} when no previous login was recorded
+  last-login-none: "-"
+  wrong-password: "{prefix}&cWrong password. Attempts left: {left}"
+  too-many-attempts: "&cToo many wrong passwords.\n&7Please try again."
+  timeout-kick: "&cYou did not log in within {seconds} seconds."
+  commands-blocked: "{prefix}&cYou must log in first. Allowed: /reg /register /login /log /logout"
+  chat-blocked: "{prefix}&cYou must log in before chatting."
+  logout-kick: "&aYou left the server.\n&7See you soon!"
+  storage-error: "&cCould not load your account. Please try again later."
+  players-only: "This command can only be used by players."
