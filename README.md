@@ -176,7 +176,7 @@ All messages live under `messages:` in `configvk.yml`. Available placeholders:
 
 | | |
 |---|---|
-| **Plugin** | Ai For Minecraft |
+| **Plugin** | Login And Register Minecraft |
 | **Author** | Benyamin Gharri |
 | **YouTube** | [BenyVKx](https://www.youtube.com/@BenyVKx) |
 | **Tutorial Video** | Coming soon |
