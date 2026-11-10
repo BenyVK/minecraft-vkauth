@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerCommandSendEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -28,11 +29,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 import java.util.Locale;
-import java.util.Set;
 
 public final class AuthListener implements Listener {
-
-    private static final Set<String> ALLOWED_COMMANDS = Set.of("reg", "register", "login", "log", "logout");
 
     private final AuthManager auth;
     private final ConfigVk cfg;
@@ -81,8 +79,12 @@ public final class AuthListener implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent e) {
         if (!auth.isLocked(e.getPlayer())) return;
 
-        String message = e.getMessage();
-        String label = message.substring(1).split(" ", 2)[0].toLowerCase(Locale.ROOT);
+        String message = e.getMessage().trim();
+        if (message.length() < 2 || message.charAt(0) != '/') {
+            deny(e);
+            return;
+        }
+        String label = message.substring(1).split("\\s+", 2)[0].toLowerCase(Locale.ROOT);
 
         int colon = label.indexOf(':');
         if (colon >= 0) {
@@ -92,7 +94,22 @@ public final class AuthListener implements Listener {
             }
             label = label.substring(colon + 1);
         }
-        if (!ALLOWED_COMMANDS.contains(label)) deny(e);
+        if (!cfg.authCommands().contains(label)) deny(e);
+    }
+
+    /** Remove locked commands from the command tree sent to the client's tab completer. */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCommandSend(PlayerCommandSendEvent e) {
+        if (!auth.isLocked(e.getPlayer())) return;
+        e.getCommands().removeIf(command -> {
+            String label = command.toLowerCase(Locale.ROOT);
+            int colon = label.indexOf(':');
+            if (colon >= 0) {
+                if (!label.substring(0, colon).equals("vkauth")) return true;
+                label = label.substring(colon + 1);
+            }
+            return !cfg.authCommands().contains(label);
+        });
     }
 
     private void deny(PlayerCommandPreprocessEvent e) {

@@ -52,6 +52,7 @@ public final class AuthManager {
 
         clear(id);
         pending.put(id, now);
+        player.updateCommands();
         lastReminder.put(id, now);
         origin.put(id, player.getLocation().clone());
 
@@ -306,6 +307,7 @@ public final class AuthManager {
     private void authenticate(Player player, boolean firstTime) {
         UUID id = player.getUniqueId();
         pending.remove(id);
+        player.updateCommands();
         lastReminder.remove(id);
         attempts.remove(id);
         removeNote(id);

@@ -116,6 +116,18 @@ public final class ConfigVk {
         return cfg.getString(path, "");
     }
 
+    /** Command labels players may use before authenticating. */
+    public Set<String> authCommands() {
+        Set<String> commands = new LinkedHashSet<>();
+        for (String command : cfg.getStringList("auth-commands")) {
+            String label = command.trim().toLowerCase(Locale.ROOT);
+            while (label.startsWith("/")) label = label.substring(1);
+            if (label.startsWith("vkauth:")) label = label.substring("vkauth:".length());
+            if (!label.isBlank() && !label.contains(":")) commands.add(label);
+        }
+        return commands;
+    }
+
     public int integer(String path) {
         return cfg.getInt(path);
     }

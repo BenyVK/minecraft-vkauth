@@ -42,6 +42,16 @@ pos-auth-start: "0.5,100,0.5,0"
 #         (works together with auth-map, or on its own)
 auth_hide_players: false
 
+# Command labels and aliases that remain usable before login. All other commands
+# are blocked server-side and removed from the command suggestions sent to the player.
+# Namespace qualification is accepted for this plugin (for example vkauth:login).
+auth-commands:
+  - login
+  - log
+  - register
+  - reg
+  - logout
+
 # ----------------------------------------------------------------------
 # start_auth_all: true -> after login/register the player spawns at start_auth_pos
 # start_auth_all_replay (only matters when start_auth_all is true):
@@ -116,7 +126,7 @@ messages:
   wrong-password: "{prefix}&cWrong password. Attempts left: {left}"
   too-many-attempts: "&cToo many wrong passwords.\n&7Please try again."
   timeout-kick: "&cYou did not log in within {seconds} seconds."
-  commands-blocked: "{prefix}&cYou must log in first. Allowed: /reg /register /login /log /logout"
+  commands-blocked: "{prefix}&cYou must log in first."
   chat-blocked: "{prefix}&cYou must log in before chatting."
   logout-kick: "&aYou left the server.\n&7See you soon!"
   storage-error: "&cCould not load your account. Please try again later."
