@@ -1,6 +1,7 @@
 # vkauth
 
 **English** | [فارسی](README.FA.md)
+
 A lightweight register / login plugin for **Paper 1.21+** servers.
 Players must register once and log in on every join. Until they do, they are frozen and cannot chat, run commands, break/place blocks, or interact with anything.
 
