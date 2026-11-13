@@ -145,8 +145,51 @@ public final class StorageManager {
         return ok;
     }
 
-    /** Blocking - call from an async thread. Returns the account or null if it does not exist. */
-    public Account load(UUID uuid, String name) throws Exception {
+    /**
+     * Blocking - call from an async thread. Returns the account or null if it does not exist.
+     *
+     * @param ignoreCase true when replay-id-account is false: if nothing is stored under {@code uuid},
+     *                   accounts saved earlier under any spelling of {@code name} are adopted
+     *                   (copied to {@code uuid}).
+     */
+    public Account load(UUID uuid, String name, boolean ignoreCase) throws Exception {
+        Account found = load(uuid, name);
+        if (found != null || !ignoreCase) return found;
+
+        Account legacy = findByNameIgnoreCase(name);
+        if (legacy == null) return null;
+        try {
+            save(uuid, name, legacy);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Could not adopt old account of " + name + ": " + e.getMessage());
+        }
+        return legacy;
+    }
+
+    /** Oldest registered account whose stored name equals {@code name} ignoring case, or null. */
+    private Account findByNameIgnoreCase(String name) {
+        Account best = null;
+        for (Storage s : storages) {
+            try {
+                for (StoredAccount a : s.getAll()) {
+                    if (a.name() == null || !a.name().equalsIgnoreCase(name)) continue;
+                    if (best == null || older(a.account(), best)) best = a.account();
+                }
+            } catch (Exception e) {
+                plugin.getLogger().log(Level.WARNING, "Name lookup failed on " + s.name() + ": " + e.getMessage());
+            }
+            if (best != null) break;
+        }
+        return best;
+    }
+
+    private static boolean older(Account a, Account b) {
+        long x = a.registered() > 0 ? a.registered() : Long.MAX_VALUE;
+        long y = b.registered() > 0 ? b.registered() : Long.MAX_VALUE;
+        return x < y;
+    }
+
+    private Account load(UUID uuid, String name) throws Exception {
         Exception error = null;
         for (int i = 0; i < storages.size(); i++) {
             Storage s = storages.get(i);

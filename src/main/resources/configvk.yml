@@ -30,6 +30,18 @@ storage:
     table: "vkauth_accounts"
 
 # ----------------------------------------------------------------------
+# replay-id-account:
+#     true  -> upper/lower case of the name matters. "BenyVK" and "BEnyVK"
+#              are TWO different accounts (each has its own password).
+#     false -> upper/lower case is ignored. "BenyVK" and "BEnyVK" (and every
+#              other spelling) are ONE account with ONE password.
+# When you switch to false, old accounts are found by name (ignoring case)
+# and copied to the shared account automatically. If several spellings were
+# registered before, the oldest registration wins.
+# ----------------------------------------------------------------------
+replay-id-account: true
+
+# ----------------------------------------------------------------------
 # auth-map: true  -> unauthenticated players are teleported to pos-auth-start,
 #                    and after login they go back to where they were.
 # Format: "X,Y,Z,A"  (A = yaw / facing angle)

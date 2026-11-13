@@ -11,7 +11,9 @@ import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +28,8 @@ public final class AuthManager {
     private final DailyCounters counters;
 
     private final Map<UUID, Long> pending = new ConcurrentHashMap<>();
+    /** player uuid -> uuid the account is stored under (see replay-id-account) */
+    private final Map<UUID, UUID> accountIds = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastReminder = new ConcurrentHashMap<>();
     private final Map<UUID, Account> accounts = new ConcurrentHashMap<>();
     private final Map<UUID, Location> origin = new ConcurrentHashMap<>();
@@ -41,6 +45,21 @@ public final class AuthManager {
         this.counters = new DailyCounters(plugin, cfg);
     }
 
+    /**
+     * The id an account is stored under.
+     * replay-id-account true  -> the player's own uuid (BenyVK and BEnyVK differ).
+     * replay-id-account false -> derived from the lower-cased name (BenyVK and BEnyVK are the same).
+     */
+    private UUID accountKey(Player player) {
+        if (cfg.replayIdAccount()) return player.getUniqueId();
+        String lower = player.getName().toLowerCase(Locale.ROOT);
+        return UUID.nameUUIDFromBytes(("vkauth-account:" + lower).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private UUID keyOf(UUID playerId) {
+        return accountIds.getOrDefault(playerId, playerId);
+    }
+
     public boolean isLocked(Player player) {
         return pending.containsKey(player.getUniqueId());
     }
@@ -52,6 +71,9 @@ public final class AuthManager {
 
         clear(id);
         pending.put(id, now);
+        final UUID key = accountKey(player);
+        accountIds.put(id, key);
+        final boolean ignoreCase = !cfg.replayIdAccount();
         player.updateCommands();
         lastReminder.put(id, now);
         origin.put(id, player.getLocation().clone());
@@ -74,7 +96,7 @@ public final class AuthManager {
             Account account = null;
             Exception error = null;
             try {
-                account = storage.load(id, name);
+                account = storage.load(key, name, ignoreCase);
             } catch (Exception e) {
                 error = e;
             }
@@ -126,6 +148,7 @@ public final class AuthManager {
         pending.remove(id);
         lastReminder.remove(id);
         accounts.remove(id);
+        accountIds.remove(id);
         origin.remove(id);
         attempts.remove(id);
         loaded.remove(id);
@@ -216,12 +239,13 @@ public final class AuthManager {
 
         busy.add(id);
         String name = player.getName();
+        final UUID key = keyOf(id);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             long now = System.currentTimeMillis();
             Account account = new Account(PasswordHasher.hash(password), now, now);
             Exception error = null;
             try {
-                storage.save(id, name, account);
+                storage.save(key, name, account);
             } catch (Exception e) {
                 error = e;
             }
@@ -297,7 +321,8 @@ public final class AuthManager {
 
     private void saveLastLogin(UUID id) {
         long now = System.currentTimeMillis();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> storage.updateLastLogin(id, now));
+        final UUID key = keyOf(id);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> storage.updateLastLogin(key, now));
     }
 
     /**

@@ -99,6 +99,14 @@ public final class ConfigVk {
         return cfg.getBoolean("start_auth_all_replay", true);
     }
 
+    /**
+     * true  = every exact spelling of a name is its own account (BenyVK and BEnyVK are two accounts).
+     * false = upper/lower case is ignored (BenyVK and BEnyVK share ONE account).
+     */
+    public boolean replayIdAccount() {
+        return cfg.getBoolean("replay-id-account", true);
+    }
+
     public List<String> storageTypes() {
         Set<String> out = new LinkedHashSet<>();
         for (String s : cfg.getString("storage.type", "yaml").split("[,;\\s]+")) {
