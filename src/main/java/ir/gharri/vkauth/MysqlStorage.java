@@ -113,11 +113,12 @@ public final class MysqlStorage implements Storage {
     public Account getAccount(UUID uuid) throws Exception {
         try (Connection c = connect();
              PreparedStatement ps = c.prepareStatement(
-                     "SELECT hash, registered, last_login FROM `" + table + "` WHERE uuid = ?")) {
+                     "SELECT hash, registered, last_login, name FROM `" + table + "` WHERE uuid = ?")) {
             ps.setString(1, uuid.toString());
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
-                return new Account(rs.getString("hash"), rs.getLong("registered"), rs.getLong("last_login"));
+                return new Account(rs.getString("hash"), rs.getLong("registered"), rs.getLong("last_login"),
+                        rs.getString("name"));
             }
         }
     }
@@ -150,6 +151,15 @@ public final class MysqlStorage implements Storage {
     }
 
     @Override
+    public void deleteAccount(UUID uuid) throws Exception {
+        try (Connection c = connect();
+             PreparedStatement ps = c.prepareStatement("DELETE FROM `" + table + "` WHERE uuid = ?")) {
+            ps.setString(1, uuid.toString());
+            ps.executeUpdate();
+        }
+    }
+
+    @Override
     public List<StoredAccount> getAll() throws Exception {
         List<StoredAccount> out = new ArrayList<>();
         try (Connection c = connect()) {
@@ -166,7 +176,8 @@ public final class MysqlStorage implements Storage {
                         continue;
                     }
                     out.add(new StoredAccount(id, rs.getString("name"),
-                            new Account(rs.getString("hash"), rs.getLong("registered"), rs.getLong("last_login"))));
+                            new Account(rs.getString("hash"), rs.getLong("registered"), rs.getLong("last_login"),
+                                    rs.getString("name"))));
                 }
             }
         }

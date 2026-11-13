@@ -42,6 +42,17 @@ storage:
 replay-id-account: true
 
 # ----------------------------------------------------------------------
+# incorrect-installation:
+#     true  -> a player whose name differs from the registered name only by
+#              upper/lower case is KICKED and told which name to use.
+#              Example: registered as "BenyVK", joins as "BEnyVK" ->
+#              kicked with messages.wrong-name-kick ({name} = "BenyVK").
+#              Works with both values of replay-id-account.
+#     false -> no check.
+# ----------------------------------------------------------------------
+incorrect-installation: false
+
+# ----------------------------------------------------------------------
 # auth-map: true  -> unauthenticated players are teleported to pos-auth-start,
 #                    and after login they go back to where they were.
 # Format: "X,Y,Z,A"  (A = yaw / facing angle)
@@ -141,5 +152,7 @@ messages:
   commands-blocked: "{prefix}&cYou must log in first."
   chat-blocked: "{prefix}&cYou must log in before chatting."
   logout-kick: "&aYou left the server.\n&7See you soon!"
+  # {name} = the name the account was registered with, {player} = the name the player joined with
+  wrong-name-kick: "&cYour name must be &f{name} &cto log in.\n&7You joined as &f{player}&7. Please change your name and join again."
   storage-error: "&cCould not load your account. Please try again later."
   players-only: "This command can only be used by players."

@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "ir.gharri"
-version = "0.5"
+version = "0.6"
 
 repositories {
     mavenCentral()

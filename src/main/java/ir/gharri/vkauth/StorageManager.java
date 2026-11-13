@@ -149,38 +149,76 @@ public final class StorageManager {
      * Blocking - call from an async thread. Returns the account or null if it does not exist.
      *
      * @param ignoreCase true when replay-id-account is false: if nothing is stored under {@code uuid},
-     *                   accounts saved earlier under any spelling of {@code name} are adopted
-     *                   (copied to {@code uuid}).
+     *                   accounts saved earlier under any spelling of {@code name} are moved
+     *                   to {@code uuid} (the old rows are deleted, so nothing is stored twice).
      */
     public Account load(UUID uuid, String name, boolean ignoreCase) throws Exception {
         Account found = load(uuid, name);
         if (found != null || !ignoreCase) return found;
 
-        Account legacy = findByNameIgnoreCase(name);
-        if (legacy == null) return null;
+        List<StoredAccount> matches = findByNameIgnoreCase(name);
+        if (matches.isEmpty()) return null;
+
+        StoredAccount best = matches.get(0);
+        for (StoredAccount m : matches) {
+            if (older(m.account(), best.account())) best = m;
+        }
         try {
-            save(uuid, name, legacy);
+            save(uuid, best.account().name() != null ? best.account().name() : name, best.account());
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "Could not adopt old account of " + name + ": " + e.getMessage());
+            return best.account();
         }
-        return legacy;
+
+        // The account now lives under the shared id: remove the old rows so it is not stored twice.
+        for (StoredAccount m : matches) {
+            if (m.uuid().equals(uuid)) continue;
+            for (Storage s : storages) {
+                try {
+                    s.deleteAccount(m.uuid());
+                } catch (Exception e) {
+                    plugin.getLogger().log(Level.WARNING, "Could not remove old row " + m.uuid() + " from "
+                            + s.name() + ": " + e.getMessage());
+                }
+            }
+        }
+        return best.account();
     }
 
-    /** Oldest registered account whose stored name equals {@code name} ignoring case, or null. */
-    private Account findByNameIgnoreCase(String name) {
-        Account best = null;
+    /**
+     * Used by incorrect-installation. Returns the exact spelling the account was registered with when it
+     * differs from {@code name} only by upper/lower case (e.g. registered "BenyVK", joined as "BEnyVK"),
+     * otherwise null. Blocking - call from an async thread.
+     *
+     * @param loaded what {@link #load(UUID, String, boolean)} returned for this player (may be null)
+     */
+    public String findWrongSpelling(String name, Account loaded) {
+        if (loaded != null) {
+            String stored = loaded.name();
+            if (stored != null && !stored.equals(name) && stored.equalsIgnoreCase(name)) return stored;
+            return null;
+        }
+        StoredAccount best = null;
+        for (StoredAccount m : findByNameIgnoreCase(name)) {
+            if (m.name() == null || m.name().equals(name)) return null; // exact spelling exists
+            if (best == null || older(m.account(), best.account())) best = m;
+        }
+        return best == null ? null : best.name();
+    }
+
+    /** Every stored account whose name equals {@code name} ignoring case (one entry per uuid). */
+    private List<StoredAccount> findByNameIgnoreCase(String name) {
+        Map<UUID, StoredAccount> found = new LinkedHashMap<>();
         for (Storage s : storages) {
             try {
                 for (StoredAccount a : s.getAll()) {
-                    if (a.name() == null || !a.name().equalsIgnoreCase(name)) continue;
-                    if (best == null || older(a.account(), best)) best = a.account();
+                    if (a.name() != null && a.name().equalsIgnoreCase(name)) found.putIfAbsent(a.uuid(), a);
                 }
             } catch (Exception e) {
                 plugin.getLogger().log(Level.WARNING, "Name lookup failed on " + s.name() + ": " + e.getMessage());
             }
-            if (best != null) break;
         }
-        return best;
+        return new ArrayList<>(found.values());
     }
 
     private static boolean older(Account a, Account b) {
@@ -198,7 +236,7 @@ public final class StorageManager {
                 if (account != null) {
                     for (int j = 0; j < i; j++) {
                         try {
-                            storages.get(j).saveAccount(uuid, name, account);
+                            storages.get(j).saveAccount(uuid, account.name() != null ? account.name() : name, account);
                         } catch (Exception ignored) {
                         }
                     }

@@ -16,6 +16,9 @@ public interface Storage {
 
     void updateLastLogin(UUID uuid, long time) throws Exception;
 
+    /** Removes one account (does nothing if it does not exist). */
+    void deleteAccount(UUID uuid) throws Exception;
+
     /** Every stored account (empty list if there is nothing). Works even if init() was not called. */
     List<StoredAccount> getAll() throws Exception;
 

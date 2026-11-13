@@ -74,6 +74,7 @@ public final class AuthManager {
         final UUID key = accountKey(player);
         accountIds.put(id, key);
         final boolean ignoreCase = !cfg.replayIdAccount();
+        final boolean checkName = cfg.incorrectInstallation();
         player.updateCommands();
         lastReminder.put(id, now);
         origin.put(id, player.getLocation().clone());
@@ -94,25 +95,32 @@ public final class AuthManager {
         String name = player.getName();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             Account account = null;
+            String wrongName = null;
             Exception error = null;
             try {
                 account = storage.load(key, name, ignoreCase);
+                if (checkName) wrongName = storage.findWrongSpelling(name, account);
             } catch (Exception e) {
                 error = e;
             }
             final Account found = account;
+            final String foundWrongName = wrongName;
             final Exception foundError = error;
-            Bukkit.getScheduler().runTask(plugin, () -> onLoaded(id, found, foundError));
+            Bukkit.getScheduler().runTask(plugin, () -> onLoaded(id, found, foundWrongName, foundError));
         });
     }
 
-    private void onLoaded(UUID id, Account account, Exception error) {
+    private void onLoaded(UUID id, Account account, String wrongName, Exception error) {
         Player player = Bukkit.getPlayer(id);
         if (player == null || !pending.containsKey(id)) return;
 
         if (error != null) {
             plugin.getLogger().log(Level.SEVERE, "Could not load account of " + player.getName(), error);
             player.kick(cfg.msg("storage-error"));
+            return;
+        }
+        if (wrongName != null) {
+            player.kick(cfg.msg("wrong-name-kick", "name", wrongName, "player", player.getName()));
             return;
         }
         if (account != null) accounts.put(id, account);

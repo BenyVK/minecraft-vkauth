@@ -107,6 +107,15 @@ public final class ConfigVk {
         return cfg.getBoolean("replay-id-account", true);
     }
 
+    /**
+     * true  = a player whose name differs only by upper/lower case from the registered name
+     *         (registered "BenyVK", joins as "BEnyVK") is kicked with messages.wrong-name-kick.
+     * false = no such check.
+     */
+    public boolean incorrectInstallation() {
+        return cfg.getBoolean("incorrect-installation", false);
+    }
+
     public List<String> storageTypes() {
         Set<String> out = new LinkedHashSet<>();
         for (String s : cfg.getString("storage.type", "yaml").split("[,;\\s]+")) {

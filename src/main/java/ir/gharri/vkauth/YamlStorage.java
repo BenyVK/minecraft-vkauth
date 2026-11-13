@@ -37,7 +37,8 @@ public final class YamlStorage implements Storage {
         String base = "accounts." + uuid;
         String hash = yml.getString(base + ".hash");
         if (hash == null) return null;
-        return new Account(hash, yml.getLong(base + ".registered", 0L), yml.getLong(base + ".last-login", 0L));
+        return new Account(hash, yml.getLong(base + ".registered", 0L), yml.getLong(base + ".last-login", 0L),
+                yml.getString(base + ".name"));
     }
 
     @Override
@@ -53,6 +54,13 @@ public final class YamlStorage implements Storage {
     @Override
     public synchronized void updateLastLogin(UUID uuid, long time) throws IOException {
         yml.set("accounts." + uuid + ".last-login", time);
+        yml.save(file);
+    }
+
+    @Override
+    public synchronized void deleteAccount(UUID uuid) throws IOException {
+        if (yml.get("accounts." + uuid) == null) return;
+        yml.set("accounts." + uuid, null);
         yml.save(file);
     }
 
@@ -80,7 +88,8 @@ public final class YamlStorage implements Storage {
                     section.getString(key + ".name", "unknown"),
                     new Account(hash,
                             section.getLong(key + ".registered", 0L),
-                            section.getLong(key + ".last-login", 0L))));
+                            section.getLong(key + ".last-login", 0L),
+                            section.getString(key + ".name"))));
         }
         return out;
     }
