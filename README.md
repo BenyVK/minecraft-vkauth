@@ -15,6 +15,7 @@ Players must register once and log in on every join. Until they do, they are fro
 - `/register`, `/login` and `/logout` with short aliases (`/reg`, `/log`)
 - Passwords hashed with **PBKDF2-HMAC-SHA256** (120,000 iterations, random salt per password) — never stored in plain text
 - **Case-sensitive or case-insensitive accounts** (`replay-id-account`) — decide whether `BenyVK` and `BEnyVK` are two accounts or one
+- **Wrong-name protection** (`incorrect-installation`) — a player who joins with the wrong upper/lower case (e.g. `BEnyVK` instead of `BenyVK`) is kicked and told which name to use
 - Storage in **YAML**, **MySQL**, or **both at once**, with automatic migration between them
 - Unauthenticated players are completely locked: movement, chat, commands, interaction, inventory, item pick-up/drop, buckets, damage (given and taken) are all blocked
 - Blocked commands are also removed from the client's tab-completion
@@ -78,6 +79,33 @@ replay-id-account: true
 **Switching from `false` to `true`:** this is not automatic — players will have to register again under their exact name.
 
 > This option matters on offline-mode servers, where the player's UUID is derived from the exact spelling of the name. On online-mode servers Mojang does not allow names that differ only by case, so there is no visible difference.
+
+### Wrong name check: `incorrect-installation`
+
+```yml
+incorrect-installation: false
+```
+
+| Value | Behavior |
+|---|---|
+| `true` | A player whose name differs from the registered name **only by upper/lower case** is **kicked**, and the kick message tells them which name to use. |
+| `false` | No check (default). |
+
+Example with `incorrect-installation: true`: the account was registered as `BenyVK`. A player joins as `BEnyVK` and is kicked with:
+
+```
+Your name must be BenyVK to log in.
+You joined as BEnyVK. Please change your name and join again.
+```
+
+The kick text is `messages.wrong-name-kick` and is fully editable (see [Messages](#messages)).
+
+It works with both values of `replay-id-account`:
+
+- with `replay-id-account: false` the shared account is found and its registered spelling is compared with the name the player joined with;
+- with `replay-id-account: true` a player who joins with a different spelling would normally just get a brand-new account — with this option on, they are kicked instead, so look-alike accounts (`Admin` / `ADmin`) cannot be created.
+
+The check only looks at accounts that already exist. Brand-new names register normally.
 
 ### Storage
 
@@ -196,7 +224,8 @@ Every message shown to players lives under `messages:` and can be changed freely
 | Placeholder | Where it works |
 |---|---|
 | `{prefix}` | Any message (value of `messages.prefix`) |
-| `{player}` | `must-register`, `must-login`, `text3d_note` |
+| `{player}` | `must-register`, `must-login`, `wrong-name-kick`, `text3d_note` |
+| `{name}` | `wrong-name-kick` (the name the account was registered with) |
 | `{min}` / `{max}` | `password-too-short` / `password-too-long` |
 | `{date}` | `last-login` |
 | `{attempts}`, `{max}`, `{left}` | `wrong-password` |
